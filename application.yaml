@@ -53,10 +53,6 @@ spring:
   server:
     name: cdc-event-consumer
 
-  config:
-    import: configserver:http://localhost:8101
-
-
 kafka:
   bootstrap-servers: tuintlps45:9093,tuintlps46:9093
   schema-registry-url: http://tuintlps45.tuintl.transunion.com:8082
