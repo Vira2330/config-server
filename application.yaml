@@ -1,6 +1,6 @@
-server:
+Fserver:
   port: 8091
 
 spring:
   application:
-    name: CONFIG-SERVER-GIT
+    name: CONFIG-SERVER-DEFAULT
