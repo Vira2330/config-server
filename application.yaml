@@ -1,8 +1,65 @@
-spring:
-  application:
-    name: CONFIG-SERVER-DEFAULT
+grpc:
+  server:
+    port: 9208
+  client:
+    field-event-publish-service:
+      address: 'static://tuintlvs28.tuintl.transunion.com:9195'
+      #      address: 'static://localhost:9195'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: PLAINTEXT
+      #negotiationType: TLS
+      #security:
+      #  trustCertCollection: file:/opt/transunion/grpc/cert/tuintl.transunion.com.crt
 
-kafka:    
+spring:
+  kafka:
+    consumer:
+      bootstrap-servers: tuintlps47:9092,tuintlps48:9092,tuintlps49:9092
+      #      bootstrap-servers: tuintlvs296:9092,tuintlvs297:9092,tuintlvs298:9092
+      topic: cdcEvents_local
+      #      topic: io_replicate_cdc_logs
+      group-id: cdc-event-consumer-group
+      auto-offset-reset: latest
+      enable-auto-commit: false
+      auto-commit-interval-ms: 1000
+      max-poll-interval-ms: 300000
+      max-poll-records: 500
+      poll-duration-ms: 100
+      trigger-consumer-count: 10
+      session-timeout-ms: 300000
+      heartbeat-interval-ms: 1000
+      poll-timeout: 100
+      retry-count: 1
+      delay: 20
+      id: cdc-event
+    listener:
+      concurrency: 1
+    ssl:
+      enabled: false
+      security:
+        protocol: SSL
+      truststore:
+        location:
+        password:
+      keystore:
+        location: /opt/transunion/grpc/config/common/kafkaclient.tuintl.transunion.com.jks
+        password: /T8iirsS37D/q4xY2hC7wg==
+      key:
+        password: /T8iirsS37D/q4xY2hC7wg==
+      encryption:
+        secretKeyPath: /shared/tuc1appl/config/secretkey.properties
+        saltKey: 9YmdUwOB0Zph
+  server:
+    name: cdc-event-consumer
+
+  config:
+    import: configserver:http://localhost:8101
+
+
+kafka:
+  bootstrap-servers: tuintlps45:9093,tuintlps46:9093
+  schema-registry-url: http://tuintlps45.tuintl.transunion.com:8082
   keySerializer: org.apache.kafka.common.serialization.StringSerializer
   valueSerializer: org.apache.kafka.common.serialization.ByteArraySerializer
   keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -10,6 +67,47 @@ kafka:
   groupId: cdc-failure-consumer-group
   topic: fieldEventRequest_cdc
   deadTopic : fieldEventRequest_cdc
+  consumer:
+    bootstrap-servers: tuintlps45:9092,tuintlps46:9092
+    #schema-registry-url: http://tuintlps45.tuintl.transunion.com:8082
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+    auto-offset-reset: earliest
+    enable-auto-commit: false
+    max-poll-interval-ms: 300000
+    poll-timeout: 60000
+    max-poll-records: 500
+    max-poll-zero-count: 3
+    groupId: cdc-failure-consumer-group
+    topic: fieldEventRequest_cdc
+    maxRetryCount : 3
+    min-retry-interval: 3600000 # milliseconds #3600000 # 1 hour
+  ssl:
+    enabled: false
+    security:
+      protocol: SSL
+    truststore:
+      location:
+      password:
+    keystore:
+      location: /opt/transunion/grpc/config/common/kafkaclient.tuintl.transunion.com.jks
+      password: /T8iirsS37D/q4xY2hC7wg==
+    key:
+      password: /T8iirsS37D/q4xY2hC7wg==
+    encryption:
+      secretKeyPath: /shared/tuc1appl/config/secretkey.properties
+      saltKey: 9YmdUwOB0Zph
+
+cron_job:
+  CDC_EVENT_FAILURE_RETRY_TIMER: "0 0/5 * * * *"
+
+cdc:
+  schedular:
+    threadPoolSize: 10
+
+app:
+  region: SA
+  validEventTypes: TRADE_INSERT,TRADE_UPDATE,ADDRESS_INSERT,TELEPHONE_INSERT,INQUIRY_INSERT,MERGE_INSERT
 
 field-event-mapping:
   EVENT_TYPE: tableName.name
@@ -69,3 +167,13 @@ field-event-mapping:
     dateTimeMapping:
       sourceFormat: yyyy-MM-dd HH:mm:ss.S
       targetFormat: yyyy-MM-dd
+
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
