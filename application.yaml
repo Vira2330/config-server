@@ -10,3 +10,62 @@ kafka:
   groupId: cdc-failure-consumer-group
   topic: fieldEventRequest_cdc
   deadTopic : fieldEventRequest_cdc
+
+field-event-mapping:
+  EVENT_TYPE: tableName.name
+  event-mapping:
+    DEFAULT:
+      subjectId: after.fid
+      eventTimestamp: cursor.timestamp
+      field: tableName.name[fieldMapping]
+      fieldType: tableName.name[fieldMapping]+_+opType[opTypeMapping]
+    merge_aud:
+      subjectId: after.merge_fid
+      field: "NAMES"
+
+  event-data-mapping:
+    DEFAULT:
+      serialNum: cursor.lsn+cursor.seqNum
+      memberCode: after.member_kob+after.member_code[lpadding:8:0]
+      param2: after.serial_num
+      reportedDate: after.rpted_dt
+      relatedFieldType: tableName.name[fieldMapping]+_+opType[opTypeMapping]
+    TRADE_INSERT:
+      accountInfo: after.acct_num+|+after.acct_type+|+after.owner_indic
+      recordSinceDate: after.opened_dt
+      reportedDate: after.reporting_dt
+    TRADE_UPDATE:
+      accountInfo: after.acct_num+|+after.acct_type+|+after.owner_indic
+      recordSinceDate: after.opened_dt
+      reportedDate: after.reporting_dt
+    ADDRESS_INSERT:
+      addressType: after.address_category
+      recordSinceDate: after.file_since_dt
+    INQUIRY_INSERT:
+      param2: after.inq_control_num
+      recordSinceDate: after.inquiry_dt
+      enquiryType: after.inq_purpose
+      reportedDate: after.inquiry_dt
+    TELEPHONE_INSERT:
+      recordSinceDate: after.file_since_dt
+    MERGE_INSERT:
+      param1: after.base_fid
+      accountInfo: FRAGMENT FID +after.merge_fid+ MERGED INTO BASE FID +after.base_fid
+      mergeId: cursor.seqNum
+      recordSinceDate: "1900-01-01"
+      reportedDate: "1900-01-01"
+
+  field-transformation-mapping:
+    opTypeMapping:
+      I: INSERT
+      U: UPDATE
+      D: DELETE
+    fieldMapping:
+      merge_aud: MERGE
+      trade: TRADE
+      address: ADDRESS
+      telephone: TELEPHONE
+      inquiry: INQUIRY
+    dateTimeMapping:
+      sourceFormat: yyyy-MM-dd HH:mm:ss.S
+      targetFormat: yyyy-MM-dd
