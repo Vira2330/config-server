@@ -1,4 +1,4 @@
-Fserver:
+server:
   port: 8091
 
 spring:
